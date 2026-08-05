@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>一个月学会基础日语</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-loading" id="appLoading">
+    <div class="loading-inner">
+      <div class="loading-ring"></div>
+      <p>数据加载中…</p>
+    </div>
+  </div>
+
+  <!-- 顶部导航 -->
+  <header class="site-header">
+    <nav class="nav" id="mainNav">
+      <a href="#" class="nav-brand" data-nav="home">
+        <span class="brand-mark">日</span>
+        <span class="brand-text">一个月学会基础日语</span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#" class="nav-link" data-nav="home">首页</a>
+        <a href="#" class="nav-link" data-nav="today">今日学习</a>
+        <a href="#" class="nav-link" data-nav="kana">五十音</a>
+        <a href="#" class="nav-link" data-nav="vocab">词汇</a>
+        <a href="#" class="nav-link" data-nav="grammar">语法</a>
+        <a href="#" class="nav-link" data-nav="phrases">常用表达</a>
+        <a href="#" class="nav-link" data-nav="progress">进度</a>
+      </div>
+      <button class="nav-toggle" id="navToggle" aria-label="菜单">
+        <span></span><span></span><span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="main" id="main">
+    <!-- 各页面容器 -->
+    <section class="page" id="page-home" data-page="home"></section>
+    <section class="page" id="page-today" data-page="today"></section>
+    <section class="page" id="page-kana" data-page="kana"></section>
+    <section class="page" id="page-vocab" data-page="vocab"></section>
+    <section class="page" id="page-grammar" data-page="grammar"></section>
+    <section class="page" id="page-phrases" data-page="phrases"></section>
+    <section class="page" id="page-progress" data-page="progress"></section>
+  </main>
+
+  <footer class="site-footer">
+    <p>一个月学会基础日语 · 每日一课，坚持即是进步</p>
+  </footer>
+
+  <!-- 引入顺序: data.js → app.js → voice.js -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+  <script src="voice.js"></script>
+</body>
+</html>

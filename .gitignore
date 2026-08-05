@@ -1,0 +1,9 @@
+# 部署中间产物
+deploy/
+*.zip
+
+# macOS
+.DS_Store
+
+# 日志/缓存
+*.log
