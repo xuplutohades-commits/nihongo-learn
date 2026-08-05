@@ -33,6 +33,7 @@
         <a href="#" class="nav-link" data-nav="phrases">常用表达</a>
         <a href="#" class="nav-link" data-nav="progress">进度</a>
       </div>
+      <div class="nav-account" id="accAccountSlot"></div>
       <button class="nav-toggle" id="navToggle" aria-label="菜单">
         <span></span><span></span><span></span>
       </button>
@@ -54,9 +55,12 @@
     <p>一个月学会基础日语 · 每日一课，坚持即是进步</p>
   </footer>
 
-  <!-- 引入顺序: data.js → app.js → voice.js -->
+  <!-- 引入顺序: data.js → app.js → voice.js → supabase → account.js → account-ui.js -->
   <script src="data.js"></script>
   <script src="app.js"></script>
   <script src="voice.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="account.js"></script>
+  <script src="account-ui.js"></script>
 </body>
 </html>

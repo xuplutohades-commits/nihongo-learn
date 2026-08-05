@@ -24,11 +24,21 @@
     }
   }
 
-  /* ---------- localStorage 工具 ---------- */
+  /* ---------- 进度存取：优先账号层(云端/游客)，本地兜底 ----------
+     通过 window.Account 委托；SDK 未配置/未加载时自动回落 localStorage。
+     ------------------------------------------------------------ */
   const DONE_PREFIX = "nihongo_";
   function keyFor(day) { return DONE_PREFIX + "done_" + day; }
-  function isDone(day) { return localStorage.getItem(keyFor(day)) === "1"; }
+  function isDone(day) {
+    if (window.Account && window.Account.getDone) {
+      try { return window.Account.getDone(day); } catch (e) {}
+    }
+    return localStorage.getItem(keyFor(day)) === "1";
+  }
   function setDone(day, val) {
+    if (window.Account && window.Account.setDone) {
+      try { window.Account.setDone(day, val); return; } catch (e) {}
+    }
     if (val) localStorage.setItem(keyFor(day), "1");
     else localStorage.removeItem(keyFor(day));
   }
