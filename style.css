@@ -705,18 +705,19 @@ input { font-family: inherit; }
    日语简介页
    ========================================================= */
 .hero-sm {
-  padding: var(--sp-5) var(--sp-1) var(--sp-2);
+  padding: var(--sp-6) 0 var(--sp-4);
   background: none; color: var(--c-text); min-height: 0;
   text-align: left;
 }
-.hero-sm .eyebrow { color: var(--c-primary, #bf4a4a); }
+.hero-sm .eyebrow { color: var(--c-primary, #bf4a4a); margin-bottom: var(--sp-3); }
 .hero-sm .hero-title {
   color: var(--c-text); font-size: clamp(26px, 4.6vw, 38px);
-  line-height: 1.35; letter-spacing: 0.01em; max-width: 22ch;
+  font-weight: 800; line-height: 1.4; letter-spacing: 0.01em;
+  margin: 0;
 }
 .hero-sm .hero-intro {
   color: var(--c-text-weak); font-size: 15px; line-height: 1.9;
-  max-width: 46em;
+  max-width: 40em; margin-top: var(--sp-4);
 }
 
 .intro-examples {

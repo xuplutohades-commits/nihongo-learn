@@ -765,29 +765,42 @@
   function startQuizAt(el, forcedRomaji) {
     const table = window.NihongoData.kanaTable || [];
     if (!table.length) return;
-    // 随机取罗马音
+
+    // 随机选一个目标音
     const shuffled = table.slice().sort(() => Math.random() - 0.5);
     const target = forcedRomaji ? shuffled.find(k => k.r === forcedRomaji) || shuffled[0] : shuffled[0];
     if (!target) return;
-    const options = table.slice().sort(() => Math.random() - 0.5).slice(0, 4);
-    if (!options.find(o => o.h === target.h)) { options[Math.floor(Math.random() * options.length)] = target; }
-    const optionList = table.filter(k => k.r === target.r && (k.h === target.h || k.k === target.k));
-    let candidates = optionList.length ? optionList : [target];
-    const chars = [];
-    candidates.forEach(c => { if (!chars.includes(c.h)) chars.push({ c: c, char: c.h }); if (!chars.includes(c.k)) chars.push({ c: c, char: c.k }); });
-    // 简化: 用前4个候选
-    const answerSet = chars.slice(0, 4);
-    state.quiz = { target, answerSet, answered: null, correct: false };
+
+    // 随机决定本轮考「平假名」还是「片假名」，避免两个写法都算对
+    const script = Math.random() < 0.5 ? "h" : "k"; // h=平假名, k=片假名
+    const scriptLabel = script === "h" ? "平假名" : "片假名";
+    const targetChar = script === "h" ? target.h : target.k;
+
+    // 从同一种字体的所有音中，随机取 4 个作为选项(含正确项)
+    const pool = table.filter(x => script === "h" ? x.h && x.k : x.k); // 同 script 的候选
+    const chance = pool.slice().sort(() => Math.random() - 0.5);
+    const options = [];
+    // 先保证放入正确项
+    options.push({ char: targetChar, correct: true });
+    chance.forEach(x => {
+      if (options.length >= 4) return;
+      const c = script === "h" ? x.h : x.k;
+      if (c && c !== targetChar) options.push({ char: c, correct: false });
+    });
+    // 打乱选项顺序
+    options.sort(() => Math.random() - 0.5);
+
+    state.quiz = { target, script, scriptLabel, answerSet: options, answered: null, correct: false };
 
     const optionsHtml = state.quiz.answerSet.map((op, i) =>
-      `<button class="quiz-option" data-i="${i}">${esc(op.char)}</button>`
+      `<button class="quiz-option" data-i="${i}" data-correct-to="${esc(op.char)}">${esc(op.char)}</button>`
     ).join("");
 
     const area = el.querySelector("#quizArea");
     area.innerHTML = `
       <div class="card quiz-card">
-        <div class="quiz-info">听读音，选出对应的假名</div>
-        <div class="quiz-prompt"><button class="speak-btn" data-speak="${esc(target.r)}">♪</button> ${esc(target.r)}</div>
+        <div class="quiz-info">听读音，选出对应的 <b>${scriptLabel}</b></div>
+        <div class="quiz-prompt"><button class="speak-btn" data-speak="${esc(target.r)}">♪</button> 读音 ${esc(target.r)}（${scriptLabel}）</div>
         <div class="quiz-options">${optionsHtml}</div>
         <div class="quiz-feedback" id="quizFeedback"></div>
         <button class="btn btn-ghost btn-sm" id="quizNext">下一题 →</button>
@@ -800,18 +813,18 @@
         if (state.quiz.answered !== null) return;
         state.quiz.answered = parseInt(btn.dataset.i, 10);
         const picked = state.quiz.answerSet[state.quiz.answered];
-        const isCorrect = picked.char === state.quiz.target.h || picked.char === state.quiz.target.k;
+        const isCorrect = !!picked.correct;
         state.quiz.correct = isCorrect;
-        if (picked.char === state.quiz.target.h || picked.char === state.quiz.target.k) {
+        if (isCorrect) {
           btn.classList.add("correct");
           fb.className = "quiz-feedback ok";
-          fb.innerHTML = `正确！${esc(state.quiz.target.h)} ${esc(state.quiz.target.k)}`;
+          fb.innerHTML = `正确！「${esc(targetChar)}」是 ${scriptLabel}，就读 <span class="jp">${esc(target.r)}</span>`;
         } else {
           btn.classList.add("wrong");
           fb.className = "quiz-feedback no";
-          fb.innerHTML = `不对，正确答案是 <span class="jp">${esc(state.quiz.target.h)} ${esc(state.quiz.target.k)}</span>`;
+          fb.innerHTML = `不对，${scriptLabel}「${esc(targetChar)}」才读 <span class="jp">${esc(target.r)}</span>`;
         }
-        speak(state.quiz.target.r);
+        speak(target.r);
       });
     });
 
