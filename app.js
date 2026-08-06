@@ -111,6 +111,23 @@
       vocab: renderVocab, grammar: renderGrammar, phrases: renderPhrases, progress: renderProgress
     };
     if (renderers[name]) renderers[name]();
+    // 同步地址栏 hash（成为一条可回退的历史记录；由 hashchange 触发的渲染不重复入栈）
+    const targetHash = "#/" + name;
+    if (location.hash !== targetHash) {
+      history.pushState({ page: name }, "", targetHash);
+    }
+  }
+
+  /* 解析当前 hash 对应的页面 */
+  function pageFromHash() {
+    const h = location.hash || "";
+    const m = h.match(/^#\/([a-z]+)/);
+    const name = m ? m[1] : "home";
+    const renderers = {
+      home: 1, intro: 1, today: 1, kana: 1,
+      vocab: 1, grammar: 1, phrases: 1, progress: 1
+    };
+    return renderers[name] ? name : "home";
   }
 
   function bindNav() {
@@ -235,7 +252,7 @@
       <div class="hero hero-sm">
         <div class="eyebrow">はじめての日本語</div>
         <h1 class="hero-title">先认识一下 · 日语是怎么构成的</h1>
-        <p class="hero-intro">别怕，日语看着复杂，其实就「三套字 + 一个辅助」。这篇文章用生活里的例子带你 3 分钟看懂，之后学起来就不慌。</p>
+        <p class="hero-intro">别怕，日语看着复杂，其实就「三套字 + 一个辅助」。这篇文章用生活里的例子带你 <span class="nowrap">3 分钟</span>看懂，之后学起来就不慌。</p>
       </div>
 
       <div class="card">
@@ -792,6 +809,12 @@
 
     state.quiz = { target, script, scriptLabel, answerSet: options, answered: null, correct: false };
 
+    // 进入答题：推一条 #/kana/quiz 历史记录，方便用浏览器←退出答题回到五十音表格
+    // (重复出题/下一题时不重复入栈)
+    if (location.hash !== "#/kana/quiz") {
+      history.pushState({ page: "kana", quiz: true }, "", "#/kana/quiz");
+    }
+
     const optionsHtml = state.quiz.answerSet.map((op, i) =>
       `<button class="quiz-option" data-i="${i}" data-correct-to="${esc(op.char)}">${esc(op.char)}</button>`
     ).join("");
@@ -1039,14 +1062,20 @@
 
   /* ---------- 初始化 ---------- */
   function boot() {
-    renderHome();
-    showPage("home");
+    const startPage = pageFromHash();
+    // 用 replaceState 同步初始 hash，避免多出一条多余的首页历史记录
+    history.replaceState({ page: startPage }, "", "#/" + startPage);
+    showPage(startPage);
     const loading = document.getElementById("appLoading");
     if (loading) loading.classList.add("hidden");
   }
 
   function init() {
     bindNav();
+    // 浏览器前进/后退/直接改 hash：根据 hash 渲染对应页面并清掉子状态(如答题中的 quiz)
+    window.addEventListener("hashchange", () => {
+      showPage(pageFromHash());
+    });
     let booted = false;
     function doBoot() {
       if (booted || !window.NihongoData) return;

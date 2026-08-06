@@ -148,7 +148,7 @@ input { font-family: inherit; }
 .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
 /* ------------------------- 主内容 ------------------------- */
-.main { max-width: 1080px; margin: 0 auto; padding: var(--sp-6) var(--sp-4) var(--sp-7); }
+.main { max-width: 1080px; margin: 0 auto; padding: var(--sp-6) var(--sp-5) var(--sp-7); }
 
 .page { display: none; animation: fadeIn 0.3s ease; }
 .page.active { display: block; }
@@ -716,9 +716,10 @@ input { font-family: inherit; }
   margin: 0;
 }
 .hero-sm .hero-intro {
-  color: var(--c-text-weak); font-size: 15px; line-height: 1.9;
-  max-width: 40em; margin-top: var(--sp-4);
+  color: var(--c-text-weak); font-size: 15.5px; line-height: 1.9;
+  max-width: none; margin-top: var(--sp-4);
 }
+.nowrap { white-space: nowrap; }
 
 .intro-examples {
   display: flex; flex-wrap: wrap; gap: var(--sp-3);
