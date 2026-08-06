@@ -72,7 +72,8 @@
       var name = (v.name || '').toLowerCase();
       var score = 0;
       for (var i = 0; i < NATURAL_KEYS.length; i++) {
-        if (name.indexOf(NATURAL_KEYS[i]) !== -1) { score++; break; }
+        // 命中多个自然语音关键词则累加，好音色(如 Google 日本語)会更高分
+        if (name.indexOf(NATURAL_KEYS[i]) !== -1) score++;
       }
       // 带名字的具体语音（非纯 lang 标签）得分略高，通常音色更真实
       if (name.length > 8) score += 0.5;
