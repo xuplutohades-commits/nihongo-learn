@@ -114,20 +114,35 @@
   }
 
   function bindNav() {
-    document.querySelectorAll(".nav-link, [data-nav]").forEach(el => {
+    document.querySelectorAll(".nav-link").forEach(el => {
       el.addEventListener("click", e => {
         e.preventDefault();
         const page = el.dataset.nav;
         if (page) showPage(page);
       });
     });
-    navToggle.addEventListener("click", () => {
-      const open = navLinksEl.classList.toggle("open");
-      navToggle.classList.toggle("open", open);
-    });
+    // 顶栏移动端折叠开关
+    const navToggle = document.getElementById("navToggle");
+    const navLinksEl = document.getElementById("navLinks");
+    if (navToggle && navLinksEl) {
+      navToggle.addEventListener("click", () => {
+        const open = navLinksEl.classList.toggle("open");
+        navToggle.classList.toggle("open", open);
+      });
+    }
+    // 顶栏导航的事件委托
     document.getElementById("mainNav").addEventListener("click", e => {
       const el = e.target.closest("[data-nav]");
       if (el) { e.preventDefault(); if (el.dataset.nav) showPage(el.dataset.nav); }
+    });
+    // 页面内动态渲染的「data-nav」按钮(如 日语简介 底部按钮、闯关页返回)也可跳转
+    document.addEventListener("click", e => {
+      const el = e.target.closest("[data-nav]");
+      if (!el) return;
+      // 已由 mainNav 委托处理的顶栏链接不再重复触发
+      if (document.getElementById("mainNav").contains(el)) return;
+      e.preventDefault();
+      if (el.dataset.nav) showPage(el.dataset.nav);
     });
   }
 
@@ -226,7 +241,20 @@
       <div class="card">
         <div class="card-title">🇯🇵 一句话总纲</div>
         <p style="line-height:1.9">日语的文字 = <b>汉字</b> + <b>平假名</b> + <b>片假名</b> 写出来，再用 <b>罗马字</b> 标读音（给外国人看的）。一句话，<b>假名是骨架，汉字是骨头，罗马字是拐杖。</b></p>
-        <p style="line-height:1.9">你之前猜「单词是由每个片假字构成」——方向对了一大半，但更准确的说法是：<b>日语单词由「假名」拼成，而假名分平假名和片假名两套，日常本国词偏用平假名，外来语（英文音译）专用片假名。</b>下面逐个看。</p>
+        <p style="line-height:1.9">很多新手会以为单词是「用片假名一个个拼出来的」——方向没错，但更准确的讲法是：<b>日语单词由「假名」拼成，而假名分「平假名」和「片假名」两套，发音一一对应。</b>日常本国词偏用平假名，外来语（英文等音译）专用片假名。下面逐个看。</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗺️ 五十音 就是「音的表格」——先搞懂它，后面都好说</div>
+        <p style="line-height:1.9">日语里每一个<b>「音」</b>都有两个写法：圆圆的叫<b>平假名</b>，方方的叫<b>片假名</b>。把这两套排成格子，就是「五十音」。其中「五十音」是<b>统称</b>，不是单独第三种文字。</p>
+        <div class="intro-examples" style="gap:var(--sp-2)">
+          <div class="intro-ex"><span>あ / ア</span><small>音 = a（"啊"）</small></div>
+          <div class="intro-ex"><span>い / イ</span><small>音 = i（"衣"）</small></div>
+          <div class="intro-ex"><span>う / ウ</span><small>音 = u（"乌"）</small></div>
+          <div class="intro-ex"><span>え / エ</span><small>音 = e（"诶"）</small></div>
+          <div class="intro-ex"><span>お / オ</span><small>音 = o（"哦"）</small></div>
+        </div>
+        <p style="line-height:1.9;margin-top:var(--sp-2)">看到没：<b>あ</b>（平）和<b>ア</b>（片）都是读 <b>a</b>，只是形状不同。<b>平假名拼本国词，片假名拼外来语，发音完全一样。</b>再加上从中国来的<b>汉字</b>（表意字，如山、水、学生），三种字在日文里一起用。而<b>罗马字</b>（a、i、u…）只是外国人注音用的拐杖。</p>
       </div>
 
       <div class="card">
@@ -516,12 +544,17 @@
       const kt = window.NihongoData.kanaTable || [];
       const target = kt.slice(0, day.day === 1 ? 10 : day.day === 2 ? 24 : 30);
       const showKatakana = day.day === 3;
-      const cells = target.map(k => `
-        <div class="kana-learn-cell">
+      // 朗读文本：平假名日读平假名，片假名日读片假名，两者发音一致
+      const cells = target.map(k => {
+        const speakChar = showKatakana ? k.k : k.h;
+        return `
+        <div class="kana-learn-cell" title="读作 ${esc(k.r)}">
+          <button class="speak-btn" data-speak="${esc(speakChar)}" title="发音">♪</button>
           <span class="klh">${esc(k.h)}</span>
           ${showKatakana ? `<span class="klk">${esc(k.k)}</span>` : ""}
           <span class="klr">${esc(k.r)}</span>
-        </div>`).join("");
+        </div>`;
+      }).join("");
       kanaSection = `
         <div class="card kana-primer">
           <div class="card-head">
@@ -654,50 +687,50 @@
   function renderKana() {
     const el = pageEls.kana;
     const table = window.NihongoData.kanaTable || [];
+    // 按「行」(type=a,k,s,t…) 分组；每行含同一音的 平假名(.h) 与 片假名(.k)
     const groups = {};
     table.forEach(k => {
       (groups[k.type] = groups[k.type] || []).push(k);
     });
 
-    const typeLabels = { hiragana: "平假名", katakana: "片假名" };
-
-    const showK = state.kanaShow.hiragana && state.kanaShow.katakana;
-    const showH = state.kanaShow.hiragana;
-    const showKt = state.kanaShow.katakana;
-    const showR = state.kanaShow.romaji;
+    const groupTitles = {
+      a: "あ行", k: "か行", s: "さ行", t: "た行", n: "な行",
+      h: "は行", m: "ま行", y: "や行", r: "ら行", w: "わ行", nn: "ん"
+    };
 
     let groupHtml = Object.keys(groups).map(type => {
       const items = groups[type];
-      const showThis = type === "hiragana" ? showH : (type === "katakana" ? showKt : true);
-      if (!showThis) return "";
       const cells = items.map(k => {
-        let html = `<div class="kana-cell" data-k="<span>${esc(k.h)}</span>${esc(k.k)}" data-r="${esc(k.r)}" data-h="${esc(k.h)}" data-kk="${esc(k.k)}">`;
-        // 显示假名: 平/片取各自 —— 展示该组自己的假名
-        const char = type === "hiragana" ? k.h : k.k;
-        html = `<div class="kana-cell clickable-kana" data-type="${esc(type)}" data-h="${esc(k.h)}" data-k="${esc(k.k)}" data-r="${esc(k.r)}">`;
-        html += `<div class="k">${esc(char)}</div>`;
-        if (showR) html += `<div class="r">${esc(k.r)}</div>`;
-        // 若两种假名都显示，则给出对应的另一种假名小字
-        if (showK && type === "hiragana") html += `<div class="h">${esc(k.k)}</div>`;
-        if (showK && type === "katakana") html += `<div class="h">${esc(k.h)}</div>`;
-        html += `</div>`;
-        return html;
+        // 每个格子：读音(罗马音) + 平假名 + 片假名，三种一起
+        const hira = esc(k.h), kata = esc(k.k), roma = esc(k.r);
+        const dimH = !state.kanaShow.hiragana ? " dim" : "";
+        const dimK = !state.kanaShow.katakana ? " dim" : "";
+        return `<div class="kana-cell clickable-kana" data-type="${esc(type)}" data-h="${hira}" data-k="${kata}" data-r="${roma}">
+          <button class="speak-btn" data-speak="${hira}" title="发音">♪</button>
+          <div class="r">${roma}<em>读</em></div>
+          <div class="k-row">
+            <span class="k kl-h${dimH}">${hira}</span>
+            <span class="k kl-k${dimK}">${kata}</span>
+          </div>
+        </div>`;
       }).join("");
-      return `<div class="kana-group"><div class="kana-group-title">${esc(typeLabels[type] || type)} <span class="jp">${type === "hiragana" ? "ひらがな" : "カタカナ"}</span></div><div class="kana-grid">${cells}</div></div>`;
+      const examples = items.slice(0, 2).map(x => x.r).join("・");
+      const title = `${groupTitles[type] || esc(type) + "行"} · 读 <span class="jp">${esc(examples)}</span>`;
+      return `<div class="kana-group"><div class="kana-group-title">${title}</div><div class="kana-grid">${cells}</div></div>`;
     }).join("");
 
     el.innerHTML = `
       <div class="page-head">
         <div class="eyebrow">Kana</div>
         <h1 class="page-title">五十音图</h1>
-        <p class="page-desc">平假名 · 片假名 · 罗马音，点击即可发音，点击假名开始随机测验。</p>
+        <p class="page-desc">每个格子都给出了<b>这个音的读法（罗马音）</b>、<b>平假名</b>和<b>片假名</b>。点 ♪ 听发音，点头一个假名可练习。</p>
       </div>
 
       <div class="kana-toolbar">
         <div class="toggle-group">
           <button class="tgl ${state.kanaShow.hiragana ? "on" : ""}" data-tgl="hiragana">平假名</button>
           <button class="tgl ${state.kanaShow.katakana ? "on" : ""}" data-tgl="katakana">片假名</button>
-          <button class="tgl ${state.kanaShow.romaji ? "on" : ""}" data-tgl="romaji">罗马音</button>
+          <button class="tgl on disabled-tgl" title="罗马音始终显示">罗马音</button>
         </div>
         <button class="btn btn-primary btn-sm" id="btnQuiz">随机测验</button>
       </div>

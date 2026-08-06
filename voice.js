@@ -55,27 +55,54 @@
   }
 
   /**
-   * 从语音列表中挑选最合适的日文语音。
-   * 优先匹配 lang 以「ja-JP」开头（精确语区，如 ja-JP、ja-JP-Nanami），
-   * 其次匹配以「ja」开头（含 ja、ja_JP 等老式标注）。
+   * 从语音列表中挑选最合适、音色最自然的日文语音。
+   * 1) 优先匹配 lang 以「ja-JP」开头（精确语区）
+   * 2) 其次匹配以「ja」开头
+   * 在候选里，优先选名字偏「自然/真人感」的语音（如 Google 日本語、Azure/Kyoko 等），
+   * 避免默认的机械感音色。
    * @returns {SpeechSynthesisVoice|null} 找不到返回 null
    */
   function pickJapaneseVoice() {
     var voices = getVoices();
-    // 精确语区优先
+    // 常见较自然的日文语音名关键词（尽力而为，命中即优先）
+    var NATURAL_KEYS = ['google', 'azure', 'kyoko', 'nanami', 'sayaka', 'yuna', 'haruka',
+      'natural', 'neural', 'premium', 'オンライン', '日本語'];
+
+    function rank(v) {
+      var name = (v.name || '').toLowerCase();
+      var score = 0;
+      for (var i = 0; i < NATURAL_KEYS.length; i++) {
+        if (name.indexOf(NATURAL_KEYS[i]) !== -1) { score++; break; }
+      }
+      // 带名字的具体语音（非纯 lang 标签）得分略高，通常音色更真实
+      if (name.length > 8) score += 0.5;
+      return score;
+    }
+
+    function bestOf(list) {
+      var best = null, bestScore = -1;
+      for (var i = 0; i < list.length; i++) {
+        var sc = rank(list[i]);
+        if (sc > bestScore) { bestScore = sc; best = list[i]; }
+      }
+      return best;
+    }
+
+    // 精确语区候选
+    var exact = [];
     for (var i = 0; i < voices.length; i++) {
       var lang = (voices[i].lang || '').toLowerCase().replace(/_/g, '-');
-      if (lang === 'ja-jp' || lang.indexOf('ja-jp-') === 0) {
-        return voices[i];
-      }
+      if (lang === 'ja-jp' || lang.indexOf('ja-jp-') === 0) exact.push(voices[i]);
     }
+    if (exact.length) return bestOf(exact);
+
     // 回退：任何以 ja 开头的语音
+    var any = [];
     for (var k = 0; k < voices.length; k++) {
       var lang2 = (voices[k].lang || '').toLowerCase().replace(/_/g, '-');
-      if (lang2 === 'ja' || lang2.indexOf('ja-') === 0) {
-        return voices[k];
-      }
+      if (lang2 === 'ja' || lang2.indexOf('ja-') === 0) any.push(voices[k]);
     }
+    if (any.length) return bestOf(any);
     return null;
   }
 
@@ -227,9 +254,9 @@
       utterance.lang = 'ja-JP'; // 仍尝试指定语言，部分实现可加载对应音色
     }
 
-    // 应用可调参数
-    utterance.rate = (typeof opts.rate === 'number') ? opts.rate : 1;
-    utterance.pitch = (typeof opts.pitch === 'number') ? opts.pitch : 1;
+    // 应用可调参数（默认略慢、自然，便于初学跟学；调用方可覆盖）
+    utterance.rate = (typeof opts.rate === 'number') ? opts.rate : 0.9;
+    utterance.pitch = (typeof opts.pitch === 'number') ? opts.pitch : 1.02;
     utterance.volume = (typeof opts.volume === 'number') ? opts.volume : 1;
 
     // 记录当前 utterance 以便 stopSpeaking 清理
