@@ -55,14 +55,17 @@
     }
     return streak;
   }
-  /* 已背词汇数: 已完成天数的 vocab 总和 + phrases */
+  /* 已背词汇数: 仅统计已完成天数中学到的词（未完成不计，避免加载即虚高）。
+     每完成一天，计入该天的生词 + 必背句数。 */
   function memorizedWordCount() {
-    const done = completedDays();
+    const done = new Set(completedDays());
     let count = 0;
     window.NihongoData.days.forEach(d => {
-      if (done.includes(d.day)) count += (d.vocab || []).length;
+      if (done.has(d.day)) {
+        count += (d.vocab || []).length;
+        count += (d.sentences || []).length;
+      }
     });
-    if (window.NihongoData.phrases) count += window.NihongoData.phrases.length;
     return count;
   }
 
@@ -104,7 +107,7 @@
     document.body.scrollIntoView({ behavior: "smooth", block: "start" });
     // 渲染对应页面
     const renderers = {
-      home: renderHome, today: renderToday, kana: renderKana,
+      home: renderHome, intro: renderIntro, today: renderToday, kana: renderKana,
       vocab: renderVocab, grammar: renderGrammar, phrases: renderPhrases, progress: renderProgress
     };
     if (renderers[name]) renderers[name]();
@@ -206,8 +209,296 @@
   }
 
   /* =========================================================
-     今日学习
+     日语简介
      ========================================================= */
+  function renderIntro() {
+    const el = pageEls.intro;
+    const kana = (window.NihongoData.kanaTable || []);
+    const hiraganaSample = kana.slice(0, 5).map(x => x.h).join("");
+    const katakanaSample = kana.slice(0, 5).map(x => x.k).join("");
+    el.innerHTML = `
+      <div class="hero hero-sm">
+        <div class="eyebrow">はじめての日本語</div>
+        <h1 class="hero-title">先认识一下 · 日语是怎么构成的</h1>
+        <p class="hero-intro">别怕，日语看着复杂，其实就「三套字 + 一个辅助」。这篇文章用生活里的例子带你 3 分钟看懂，之后学起来就不慌。</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🇯🇵 一句话总纲</div>
+        <p style="line-height:1.9">日语的文字 = <b>汉字</b> + <b>平假名</b> + <b>片假名</b> 写出来，再用 <b>罗马字</b> 标读音（给外国人看的）。一句话，<b>假名是骨架，汉字是骨头，罗马字是拐杖。</b></p>
+        <p style="line-height:1.9">你之前猜「单词是由每个片假字构成」——方向对了一大半，但更准确的说法是：<b>日语单词由「假名」拼成，而假名分平假名和片假名两套，日常本国词偏用平假名，外来语（英文音译）专用片假名。</b>下面逐个看。</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎴 一、平假名 ひらがな —— 最常用，先学它</div>
+        <p style="font-family:var(--font-jp);font-size:1.6rem;letter-spacing:.3rem;color:var(--c-primary)">${esc(hiraganaSample)}</p>
+        <p style="line-height:1.9"><b>圆润、柔软</b>，像中国的草书。用来写语法助词、本国词、给汉字标音。日本人日常写词，大部分是平假名。</p>
+        <div class="intro-examples">
+          <div class="intro-ex"><span>わたし</span><small>我</small></div>
+          <div class="intro-ex"><span>がくせい</span><small>学生</small></div>
+          <div class="intro-ex"><span>たべる</span><small>吃</small></div>
+          <div class="intro-ex"><span>は・を・が</span><small>语法小字（助词）</small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🎴 二、片假名 カタカナ —— 写外来语，超市菜单常撞见</div>
+        <p style="font-family:var(--font-jp);font-size:1.6rem;letter-spacing:.3rem;color:var(--c-primary)">${esc(katakanaSample)}</p>
+        <p style="line-height:1.9"><b>方折、硬朗</b>。平假名和片假名读音<b>完全相同</b>，只是用途不同。片假名主要写<b>外来语</b>（从欧美音译来的词），你去日本看菜单、店名、车站，遍地都是！</p>
+        <div class="intro-examples">
+          <div class="intro-ex"><span>コーヒー</span><small>咖啡 ☕</small></div>
+          <div class="intro-ex"><span>ホテル</span><small>酒店 🏨</small></div>
+          <div class="intro-ex"><span>タクシー</span><small>出租车 🚕</small></div>
+          <div class="intro-ex"><span>コンビニ</span><small>便利店 🏪</small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧱 三、汉字 漢字 —— 从中国来的，看着亲切</div>
+        <p style="font-family:var(--font-jp);font-size:1.6rem;letter-spacing:.3rem;color:var(--c-primary)">日本語 学生 電車 音楽</p>
+        <p style="line-height:1.9">从中国传入的表意字，一个字可能有多个读音（音读/训读）。好处是：<b>就算读不出来，你也大概猜得到意思</b>（山、水、人、学生）。对中文母语者是巨大优势。</p>
+        <div class="intro-examples">
+          <div class="intro-ex"><span>本</span><small>书（ほん）</small></div>
+          <div class="intro-ex"><span>電車</span><small>电车（でんしゃ）</small></div>
+          <div class="intro-ex"><span>高い</span><small>贵/高（たかい）</small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔤 四、罗马字 —— 你的拐杖</div>
+        <p style="line-height:1.9">用拉丁字母拼读音，主要在给外国人认读时用（车站名、街名）。学的时候用它辅助记发音，但别再依赖它，尽快过渡到假名。</p>
+        <div class="intro-examples">
+          <div class="intro-ex"><span>watashi</span><small>わたし 我</small></div>
+          <div class="intro-ex"><span>arigatou</span><small>ありがとう 谢谢</small></div>
+          <div class="intro-ex"><span>Shibuya</span><small>渋谷 涩谷</small></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🧩 它们怎么合着用？看一个真实句子</div>
+        <p class="pattern" style="font-family:var(--font-jp)">わたし は 学生 です。</p>
+        <p style="line-height:1.9">
+          <b>わたし</b>（平假名=我）+ <b>は</b>（平假名=语法小字，标主题）+ <b>学生</b>（汉字=学生）+ <b>です</b>（平假名=「是」的礼貌说法）<br>
+          👉 整句意思「我是学生」。
+        </p>
+        <p style="line-height:1.9;color:var(--c-text-weak)">可以看到：<b>汉字表实义，平假名补语法、串句子</b>。这就是日语的样子。</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🗺️ 那这 30 天我该怎么学？</div>
+        <div class="intro-timeline">
+          <div class="tl-item"><div class="tl-week">第一周</div><div>学平假名→片假名，边认字边学「机场、酒店、点餐」张口就能用的词</div></div>
+          <div class="tl-item"><div class="tl-week">第二周</div><div>名词句「AはBです」，学会自我介绍、问路、点餐点单</div></div>
+          <div class="tl-item"><div class="tl-week">第三周</div><div>动词活用「～ます／～ました」，购物结账、打电话、日期时间</div></div>
+          <div class="tl-item"><div class="tl-week">第四周</div><div>形容词 + 场景串讲，求助、告别、闲聊，开口不慌</div></div>
+        </div>
+        <p style="line-height:1.9;margin-top:var(--sp-3)">每节课最后都有一场<b>小闯关</b>——答对当天的内容才能算学完。答错的题会<b>随机再考你</b>，直到你真正记住为止。</p>
+      </div>
+
+      <div style="margin-top:var(--sp-4)"><button class="btn" data-nav="today">明白了，开始今天的学习 →</button></div>
+    `;
+  }
+
+  /* =========================================================
+     考核闯关引擎 —— 逐题闯关、答错穿插重考、选项打乱
+     ========================================================= */
+  // 打乱数组(原地)后返回
+  function shuffleArr(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+  // 从池中取 n 个不同的干扰项(排除正确项)
+  function pickDistractors(pool, correct, n) {
+    const cands = pool.filter(x => x !== correct);
+    const seen = [];
+    while (seen.length < n && cands.length) {
+      const idx = Math.floor(Math.random() * cands.length);
+      seen.push(cands.splice(idx, 1)[0]);
+    }
+    return seen;
+  }
+
+  // 由一天的内容自动生成考核题队列
+  function buildDayQuiz(day) {
+    if (!day) return [];
+    const Q = [];                       // 题目队列
+    const allZh = [];                   // 中义池(用于干扰项)
+    const allJa = [];                   // 日文池
+    const kanaTable = window.NihongoData.kanaTable || [];
+
+    (day.vocab || []).forEach(v => {
+      if (v.zh) allZh.push(v.zh);
+      if (v.ja) allJa.push(v.ja);
+    });
+    (day.sentences || []).forEach(s => {
+      const zh = typeof s === "string" ? "" : (s.zh || "");
+      if (zh) allZh.push(zh);
+    });
+
+    // 1) 生词：日文 → 中文
+    (day.vocab || []).forEach(v => {
+      if (!v.zh || !v.ja) return;
+      const distract = pickDistractors(allZh, v.zh, 3);
+      if (distract.length >= 2) {
+        Q.push({ type: "词义", prompt: `${v.ja}  ${v.kana || ""}`, answer: v.zh,
+          explain: v.example ? `${v.ja} = ${v.exampleZh || v.zh}` : v.zh,
+          options: shuffleArr([v.zh].concat(distract)).slice(0, 4), speak: v.ja });
+      }
+    });
+
+    // 2) 生词反向：中文 → 日文
+    (day.vocab || []).forEach(v => {
+      if (!v.ja || !v.zh) return;
+      const distract = pickDistractors(allJa, v.ja, 3);
+      if (distract.length >= 2) {
+        Q.push({ type: "词", prompt: `“${v.zh}”用日语怎么说？`, answer: v.ja,
+          explain: `${v.ja}（${v.kana || ""}）＝${v.zh}`,
+          options: shuffleArr([v.ja].concat(distract)).slice(0, 4), speak: v.ja });
+      }
+    });
+
+    // 3) 必背句：日文 → 中文意思
+    (day.sentences || []).forEach(s => {
+      const text = typeof s === "string" ? s : (s.ja || "");
+      const zh = typeof s === "string" ? "" : (s.zh || "");
+      if (!text || !zh) return;
+      const distract = pickDistractors(allZh, zh, 3);
+      if (distract.length >= 2) {
+        Q.push({ type: "句意", prompt: `这句是什么意思？  ${text}`, answer: zh,
+          explain: `${text} ＝ ${zh}`,
+          options: shuffleArr([zh].concat(distract)).slice(0, 4), speak: text });
+      }
+    });
+
+    // 4) 语法：given explain → 选对应句型
+    (day.grammar || []).forEach(g => {
+      if (!g.pattern || !g.explain) return;
+      Q.push({ type: "语法", prompt: `语法理解：${g.title || g.pattern}`, answer: g.pattern,
+        explain: `${g.pattern}\n${g.explain}`,
+        options: shuffleArr([g.pattern].concat(pickDistractors(allJa.concat(allZh), g.pattern, 3))).slice(0, 4) });
+    });
+
+    // 5) 五十音(前3天)：平假名 → 罗马音 / 片假名
+    if (day.day <= 3 && kanaTable.length) {
+      const target = kanaTable.slice(0, day.day === 1 ? 10 : day.day === 2 ? 24 : 30);
+      target.forEach(k => {
+        const distractR = pickDistractors(kanaTable.map(x => x.r), k.r, 3);
+        if (distractR.length >= 2) {
+          Q.push({ type: "假名", prompt: `${k.h} 读做什么？${k.k ? `（片假名：${k.k}）` : ""}`, answer: k.r,
+            explain: `${k.h}（${k.k}）读 ${k.r}`,
+            options: shuffleArr([k.r].concat(distractR)).slice(0, 4), speak: k.h });
+        }
+      });
+    }
+
+    if (Q.length < 4) {
+      (day.grammar || []).forEach(g => {
+        if (g.example) Q.push({ type: "应用", prompt: `选出能以「${g.title || "本课语法"}」造出的句子。`, answer: g.example,
+          explain: `${g.example}\n${g.exampleZh || ""}`,
+          options: [] });
+      });
+    }
+    return Q;
+  }
+
+  // 为缺选项的题补充干扰项(来自全课程词汇与例句)
+  function ensureOptions(Q) {
+    const pool = [];
+    (window.NihongoData.days || []).forEach(d => (d.vocab || []).forEach(v => { if (v.ja) pool.push(v.ja); }));
+    (window.NihongoData.days || []).forEach(d => (d.sentences || []).forEach(s => { if (s && s.ja) pool.push(s.ja); }));
+    Q.forEach(q => {
+      if (q.type === "应用" && !q.options.length) {
+        q.options = shuffleArr([q.answer].concat(pickDistractors(pool, q.answer, 3))).slice(0, 4);
+      }
+    });
+    return Q;
+  }
+
+  /* ---------------- 闯关 UI ---------------- */
+  function renderQuiz(day, onFinish) {
+    let qs = ensureOptions(buildDayQuiz(day));
+    if (!qs.length) { onFinish && onFinish(false); renderToday(); return; }
+    if (qs.length > 16) qs = qs.slice(0, 16);
+    const el = pageEls.today;
+    const dayNum = day.day;
+    let idx = 0;
+    const soFar = {};      // 已答对的知识点
+    const stats = { total: qs.length, wrong: 0 };
+
+    function showQ() {
+      if (idx >= qs.length) {
+        setDone(dayNum, true);
+        el.innerHTML = `
+          <div class="quiz-done">
+            <div class="quiz-done-icon">🎉</div>
+            <h2>第${dayNum}天闯关成功！</h2>
+            <p>你已掌握本课 ${Object.keys(soFar).length} 个知识点，恭喜通关。</p>
+            <div class="quiz-done-stats">共 ${qs.length} 题</div>
+            <div style="margin-top:var(--sp-4);display:flex;gap:var(--sp-2)">
+              ${dayNum < (window.NihongoData.days||[]).length ? `<button class="btn" id="qNextDay">下一课 →</button>` : ""}
+              <button class="btn btn-ghost" data-nav="home">返回首页</button>
+            </div>
+          </div>`;
+        const nx = el.querySelector("#qNextDay");
+        if (nx) nx.onclick = () => { state.currentDay = dayNum + 1; renderToday(); };
+        bindSpeak(el);
+        onFinish && onFinish(true);
+        return;
+      }
+      const q = qs[idx];
+      if (soFar[q.prompt + "◆" + q.answer]) { idx++; showQ(); return; }
+      const opt = (q.options || []).map((o, i) =>
+        `<button class="quiz-opt" data-i="${i}">${esc(String(o))}</button>`).join("");
+      el.innerHTML = `
+        <div class="quiz-box">
+          <div class="quiz-head">
+            <span class="quiz-tag">📝 第${dayNum}天闯关</span>
+            <span class="quiz-pos">${idx + 1} / ${qs.length}</span>
+          </div>
+          <div class="quiz-prompt">${speakBtn(q.speak || q.prompt)} <span>${esc(q.prompt)}</span></div>
+          <div class="quiz-options">${opt}</div>
+          <div class="quiz-feedback"></div>
+        </div>
+        <div style="margin-top:var(--sp-3)"><button class="btn btn-ghost" id="qAbort">退出闯关</button></div>`;
+      bindSpeak(el);
+      el.querySelectorAll(".quiz-opt").forEach(btn => btn.addEventListener("click", () => {
+        const val = (q.options || [])[parseInt(btn.dataset.i, 10)];
+        grade(val, q);
+      }));
+      el.querySelector("#qAbort").onclick = () => renderToday();
+    }
+
+    function grade(val, q) {
+      const fb = el.querySelector(".quiz-feedback");
+      const isRight = String(val).trim() === String(q.answer).trim();
+      const lbl = q.prompt + "◆" + q.answer;
+      if (isRight) {
+        if (!soFar[lbl]) soFar[lbl] = true;
+        fb.innerHTML = `<div class="quiz-fb good">✅ 正确！${q.explain ? `<div class="quiz-explain">${esc(q.explain)}</div>` : ""}</div>`;
+        const nx = document.createElement("button");
+        nx.className = "btn btn-ghost"; nx.textContent = "下一题 →";
+        fb.appendChild(nx);
+        nx.onclick = () => { idx++; showQ(); };
+      } else {
+        stats.wrong++;
+        const insert = idx + 1 + Math.floor(Math.random() * Math.max(1, qs.length - idx - 1));
+        qs.splice(Math.min(insert, qs.length), 0, q);
+        fb.innerHTML = `<div class="quiz-fb bad">❌ 不对，正确答案是：<b>${esc(String(q.answer))}</b><div class="quiz-explain">${esc(q.explain || "")}</div></div>
+          <p class="quiz-hint">这道题稍后<b>会重新考你</b>，先做下一题加深印象~</p>`;
+        const nx = document.createElement("button");
+        nx.className = "btn btn-ghost"; nx.textContent = "继续答题 →";
+        fb.appendChild(nx);
+        nx.onclick = () => { idx++; showQ(); };
+      }
+      fb.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
+    showQ();
+  }
+
   function renderToday() {
     const el = pageEls.today;
     const days = window.NihongoData.days;
@@ -218,6 +509,29 @@
     const done = isDone(dayNum);
 
     let points = (day.points || []).map(p => `<li>${esc(p)}</li>`).join("");
+
+    // 前3天为五十音基础日：优先展示本课要学的假名
+    let kanaSection = "";
+    if (day.day <= 3) {
+      const kt = window.NihongoData.kanaTable || [];
+      const target = kt.slice(0, day.day === 1 ? 10 : day.day === 2 ? 24 : 30);
+      const showKatakana = day.day === 3;
+      const cells = target.map(k => `
+        <div class="kana-learn-cell">
+          <span class="klh">${esc(k.h)}</span>
+          ${showKatakana ? `<span class="klk">${esc(k.k)}</span>` : ""}
+          <span class="klr">${esc(k.r)}</span>
+        </div>`).join("");
+      kanaSection = `
+        <div class="card kana-primer">
+          <div class="card-head">
+            <div class="card-title">🔤 本课假名${showKatakana ? " · 片假名" : " · 平假名"}</div>
+            <span class="tag" style="background:var(--c-primary-tint);color:var(--c-primary)">先认假名再学词</span>
+          </div>
+          <p class="hint" style="margin-bottom:var(--sp-3)">${showKatakana ? "片假名多用于外来语，如コーヒー(咖啡)、ホテル(酒店)。" : "每个假名对应一个音节，练熟读音再学下面的词更轻松。"}</p>
+          <div class="kana-learn-grid">${cells}</div>
+        </div>`;
+    }
 
     let vocab = (day.vocab || []).map((v, i) => `
       <div class="card vocab-card hoverable" data-vindex="${i}">
@@ -233,14 +547,18 @@
       </div>
     `).join("");
 
-    let grammar = (day.grammar || []).map(g => `
+    let grammar = (day.grammar || []).map(g => {
+    const breakdown = (g.breakdown || []).map(b => `<span class="g-token"><b>${esc(b.token)}</b><em>${esc(b.zh)}</em></span>`).join("");
+    return `
       <div class="grammar-block">
         <div class="card-title" style="font-family:var(--font-jp)">${esc(g.title || "")}</div>
-        ${g.pattern ? `<div class="pattern">${esc(g.pattern)}</div>` : ""}
+        ${g.pattern ? `<div class="pattern">${esc(g.pattern)}${g.patternZh ? `<span class="pattern-zh">（${esc(g.patternZh)}）</span>` : ""}</div>` : ""}
+        ${breakdown ? `<div class="g-breakdown">${breakdown}</div>` : ""}
         ${g.explain ? `<div class="explain">${esc(g.explain)}</div>` : ""}
         ${g.example ? `<div class="eg">${speakBtn(g.example)} ${esc(g.example)}</div><div class="eg-zh">${esc(g.exampleZh || "")}</div>` : ""}
       </div>
-    `).join("");
+    `;
+  }).join("");
 
     let sentences = (day.sentences || []).map(s => {
       const text = typeof s === "string" ? s : (s.ja || s.text || "");
@@ -266,9 +584,11 @@
       ${done ? `<div class="done-banner">🎉 本日已完成，辛苦了！</div>` : ""}
 
       <button class="btn ${done ? "btn-ghost" : "btn-success"}" id="btnDone" style="margin-bottom:var(--sp-4)">
-        ${done ? "取消完成" : "✓ 标记本日完成"}
+        ${done ? "🔄 重新闯关" : "📝 学完了？开始今日闯关"}
       </button>
+      ${!done ? `<p class="hint" style="margin-top:-var(--sp-2);margin-bottom:var(--sp-4)">通过本课闯关才能标记完成并解锁下一课。</p>` : ""}
 
+      ${kanaSection}
       ${points ? `<div class="card"><div class="card-title">🎯 今日要点</div><ul class="points-list">${points}</ul></div>` : ""}
 
       ${vocab ? `<div class="card" id="vocabCard"><div class="card-head"><div class="card-title">🗣 生词</div><span class="tag" style="background:var(--c-primary-tint);color:var(--c-primary)">${(day.vocab||[]).length} 词</span></div>
@@ -290,8 +610,10 @@
 
     const btnDoneEl = el.querySelector("#btnDone");
     btnDoneEl.addEventListener("click", () => {
-      setDone(dayNum, !isDone(dayNum));
-      renderToday();
+      // 改为闯关通关制：点击启动考核，通过后由系统自动标记完成
+      renderQuiz(day, function (passed) {
+        if (!passed) { /* 未通过则留在当前页 */ }
+      });
     });
 
     const prevBtn = el.querySelector("#prevDay");

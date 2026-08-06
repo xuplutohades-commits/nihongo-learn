@@ -52,7 +52,9 @@
       { ja: "犬", kana: "いぬ", romaji: "inu", zh: "狗", example: "犬が好きです", exampleZh: "喜欢狗" },
       { ja: "猫", kana: "ねこ", romaji: "neko", zh: "猫", example: "猫がいます", exampleZh: "有猫" }
     ], grammar: [
-      { title: "名词谓语句", pattern: "A は B です / じゃありません", explain: "「です」表肯定判断，也有礼貌语气。否定用「じゃありません」或「ではありません」。", example: "私は学生です", exampleZh: "我是学生" }
+      { title: "名词谓语句", pattern: "A は B です / じゃありません", patternZh: "A 是 B / A 不是 B",
+        breakdown: [ { token: "は", zh: "「主题」标记，读作 wa" }, { token: "です", zh: "「是」表肯定与礼貌" }, { token: "じゃありません", zh: "「不是」" } ],
+        explain: "「です」表肯定判断，也有礼貌语气。否定用「じゃありません」或「ではありません」。", example: "私は学生です", exampleZh: "我是学生" }
     ], sentences: [
       { ja: "私は学生です", kana: "わたしはがくせいです", romaji: "watashi wa gakusei desu", zh: "我是学生" },
       { ja: "これは本です", kana: "これはほんです", romaji: "kore wa hon desu", zh: "这是书" },
@@ -68,7 +70,9 @@
       { ja: "友達", kana: "ともだち", romaji: "tomodachi", zh: "朋友", example: "友達がいます", exampleZh: "有朋友" },
       { ja: "店", kana: "みせ", romaji: "mise", zh: "店、商店", example: "店に行きます", exampleZh: "去商店" }
     ], grammar: [
-      { title: "疑问句", pattern: "A は B ですか？", explain: "句尾加「か」并升调即变成疑问句。", example: "あなたは日本人ですか", exampleZh: "你是日本人吗？" }
+      { title: "疑问句", pattern: "A は B ですか？", patternZh: "A 是 B 吗？",
+        breakdown: [ { token: "か", zh: "句尾加「か」变疑问句" } ],
+        explain: "句尾加「か」并升调即变成疑问句。", example: "あなたは日本人ですか", exampleZh: "你是日本人吗？" }
     ], sentences: [
       { ja: "今日はいい天気ですね", kana: "きょうはいいてんきですね", romaji: "kyou wa ii tenki desu ne", zh: "今天天气真好呢" },
       { ja: "お名前は何ですか", kana: "おなまえはなんですか", romaji: "o-namae wa nan desu ka", zh: "你叫什么名字？" },
@@ -83,7 +87,9 @@
       { ja: "パン", kana: "ぱん", romaji: "pan", zh: "面包(外来语)", example: "朝ごはんはパンを食べます", exampleZh: "早餐吃面包" },
       { ja: "タクシー", kana: "たくしー", romaji: "takushii", zh: "出租车(外来语)", example: "タクシーで行きます", exampleZh: "坐出租车去" }
     ], grammar: [
-      { title: "片假名外来语", pattern: "外来语用片假名书写", explain: "源自英语等外语的词用片假名，如コーヒー(coffee)、テレビ(television)。", example: "これはペンです", exampleZh: "这是钢笔" }
+      { title: "片假名外来语", pattern: "外来语用片假名书写", patternZh: "外来语(英文音译)用片假名",
+        breakdown: [ { token: "コーヒー", zh: "咖啡 ☕" }, { token: "テレビ", zh: "电视 📺" }, { token: "ペン", zh: "钢笔 ✒" } ],
+        explain: "源自英语等外语的词用片假名，如コーヒー(coffee)、テレビ(television)。", example: "これはペンです", exampleZh: "这是钢笔" }
     ], sentences: [
       { ja: "コーヒーを飲みます", kana: "こーひーをのみます", romaji: "koohii o nomimasu", zh: "喝咖啡" },
       { ja: "テレビを見ます", kana: "てれびをみます", romaji: "terebi o mimasu", zh: "看电视" },
@@ -98,7 +104,9 @@
       { ja: "よろしく", kana: "よろしく", romaji: "yoroshiku", zh: "请多关照", example: "よろしくお願いします", exampleZh: "请多关照" },
       { ja: "お願いします", kana: "おねがいします", romaji: "onegaishimasu", zh: "拜托了、麻烦了", example: "お願いします", exampleZh: "拜托了" }
     ], grammar: [
-      { title: "自我介绍句式", pattern: "私は [名字] と言います", explain: "自我介绍用「と言います」(或「です」)。", example: "私は田中と言います", exampleZh: "我叫田中" }
+      { title: "自我介绍句式", pattern: "私は [名字] と言います", patternZh: "我叫…",
+        breakdown: [ { token: "と言います", zh: "「叫做…」说" } ],
+        explain: "自我介绍用「と言います」(或「です」)。", example: "私は田中と言います", exampleZh: "我叫田中" }
     ], sentences: [
       { ja: "はじめまして、田中です", kana: "はじめまして、たなかです", romaji: "hajimemashite, Tanaka desu", zh: "初次见面，我是田中" },
       { ja: "どうぞよろしくお願いします", kana: "どうぞよろしくおねがいします", romaji: "douzo yoroshiku onegaishimasu", zh: "请多多关照" },
@@ -113,7 +121,9 @@
       { ja: "その人", kana: "そのひと", romaji: "sono hito", zh: "那个人", example: "その人は誰ですか", exampleZh: "那个人是谁？" },
       { ja: "あの店", kana: "あのみせ", romaji: "ano mise", zh: "那家店", example: "あの店は高いです", exampleZh: "那家店很贵" }
     ], grammar: [
-      { title: "指示代词 これ/それ/あれ", pattern: "これ・それ・あれ + は + 名词 + です", explain: "これ近指，それ中指，あれ远指。修饰名词时用この/その/あの。", example: "それは日本語の本です", exampleZh: "那是日语书" }
+      { title: "指示代词 これ/それ/あれ", pattern: "これ・それ・あれ + は + 名词 + です", patternZh: "这/那 是…",
+        breakdown: [ { token: "これ/それ/あれ", zh: "这/那(近/中/远)" } ],
+        explain: "これ近指，それ中指，あれ远指。修饰名词时用この/その/あの。", example: "それは日本語の本です", exampleZh: "那是日语书" }
     ], sentences: [
       { ja: "これは何ですか", kana: "これはなんですか", romaji: "kore wa nan desu ka", zh: "这是什么？" },
       { ja: "それは本です", kana: "それはほんです", romaji: "sore wa hon desu", zh: "那是书" },
@@ -128,7 +138,9 @@
       { ja: "会社員", kana: "かいしゃいん", romaji: "kaishain", zh: "公司职员", example: "私は会社員です", exampleZh: "我是公司职员" },
       { ja: "医者", kana: "いしゃ", romaji: "isha", zh: "医生", example: "父は医者です", exampleZh: "父亲是医生" }
     ], grammar: [
-      { title: "名词句否定", pattern: "A は B じゃありません", explain: "否定判断用「じゃありません」(口语)或「ではありません」(书面)。", example: "私は医者じゃありません", exampleZh: "我不是医生" }
+      { title: "名词句否定", pattern: "A は B じゃありません", patternZh: "A 不是 B",
+        breakdown: [ { token: "じゃありません", zh: "「不是」口语" }, { token: "ではありません", zh: "「不是」书面" } ],
+        explain: "否定判断用「じゃありません」(口语)或「ではありません」(书面)。", example: "私は医者じゃありません", exampleZh: "我不是医生" }
     ], sentences: [
       { ja: "はい、そうです", kana: "はい、そうです", romaji: "hai, sou desu", zh: "是的" },
       { ja: "いいえ、私は学生じゃありません", kana: "いいえ、わたしはがくせいじゃありません", romaji: "iie, watashi wa gakusei ja arimasen", zh: "不，我不是学生" },
